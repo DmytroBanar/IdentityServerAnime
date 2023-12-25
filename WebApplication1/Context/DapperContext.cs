@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
 
 namespace WebApplication1.Context
 {
@@ -10,10 +10,9 @@ namespace WebApplication1.Context
         public DapperContext(IConfiguration configuration)
         {
             _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("SqlConnection");
+            _connectionString = _configuration.GetConnectionString("PostgresConnection"); // Переконайтеся, що ви маєте правильну назву підключення в appsettings.json
         }
         public IDbConnection CreateConnection()
-        => new SqlConnection(_connectionString);
+        => new NpgsqlConnection(_connectionString);
     }
-
 }
