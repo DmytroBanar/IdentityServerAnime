@@ -2,23 +2,24 @@
 using WebApplication1.Dto;
 using WebApplication1.Entities;
 using WebApplication1.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
-using WebApplication1.Repository;
+using Microsoft.AspNetCore.Authorization;
+using IdentityModel.Client;
+using Newtonsoft.Json;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     [ApiController]
     [Route("/api/[controller]")]
+    [Authorize]
     public class AnimeController : ControllerBase
     {
         private readonly IAnimeRepository _animeRepo;
+        private readonly ITokenService _tokenService;
 
-        public AnimeController(IAnimeRepository animeRepo)
+        public AnimeController(ITokenService tokenService, IAnimeRepository animeRepo)
         {
+            _tokenService = tokenService;
             _animeRepo = animeRepo;
         }
 
@@ -121,6 +122,27 @@ namespace WebApplication1.Controllers
                 // Здійсніть логування помилки, якщо потрібно
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        public async Task<IActionResult> Anime()
+        {
+            using var client = new HttpClient();
+
+            var token = await _tokenService.GetToken("WebApiAndIdentity.read");
+
+            client.SetBearerToken(token.AccessToken);
+
+            var result = await client.GetAsync("https://localhost:5445/weatherforcast");
+
+            if (result.IsSuccessStatusCode)
+            {
+                var model = await result.Content.ReadAsStringAsync();
+
+                var data = JsonConvert.DeserializeObject<List<about>>(model);
+
+                //return View(data);
+            }
+            throw new Exception("Unable to ger content");
         }
 
 
